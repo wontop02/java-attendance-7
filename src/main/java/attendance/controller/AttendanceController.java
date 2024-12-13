@@ -2,6 +2,7 @@ package attendance.controller;
 
 import static attendance.constant.FunctionConstant.ATTENDANCE_CHANGE;
 import static attendance.constant.FunctionConstant.ATTENDANCE_CHECK;
+import static attendance.constant.FunctionConstant.CREW_ATTENDANCE_CHECK;
 
 import attendance.domain.Crew;
 import attendance.domain.Day;
@@ -15,6 +16,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class AttendanceController {
+    private static final String ABSENT_FORMAT = "--:--";
+    private static final String ABSENT = "결석";
+
     private final InputView inputView;
     private final OutputView outputView;
     private final AttendanceService attendanceService;
@@ -33,6 +37,9 @@ public class AttendanceController {
         }
         if (function.equals(ATTENDANCE_CHANGE)) {
             attendanceChange();
+        }
+        if (function.equals(CREW_ATTENDANCE_CHECK)) {
+            checkCrewAttendance();
         }
     }
 
@@ -96,5 +103,26 @@ public class AttendanceController {
         String time = inputView.readChangeTime();
         InputValidator.validateTime(time);
         return LocalTime.parse(time);
+    }
+
+    private void checkCrewAttendance() {
+        Crew crew = readAttendanceCrew();
+        for (int day = 1; day < DateTimes.now().getDayOfMonth(); day++) {
+            LocalDate localDate = LocalDate.of(2024, 12, day);
+            LocalTime localTime = crew.getLocalTime(localDate);
+            if (Day.isDayOff(localDate.getDayOfMonth())) {
+                continue;
+            }
+            attendanceService.calculateAttendanceState(crew, localDate, localTime);
+            if (localTime == null) {
+                outputView.printAttendanceCheck(localDate.getMonthValue(), localDate.getDayOfMonth(), Day.valueOfDay(
+                        localDate.getDayOfMonth()).getWeek(), ABSENT_FORMAT, ABSENT);
+                continue;
+            }
+            outputView.printAttendanceCheck(localDate.getMonthValue(), localDate.getDayOfMonth(), Day.valueOfDay(
+                            localDate.getDayOfMonth()).getWeek(), localTime.toString(),
+                    attendanceService.checkAttendance(localDate, localTime));
+        }
+        outputView.printAttendanceState(crew.getAttendance(), crew.getLateness(), crew.getAbsence());
     }
 }

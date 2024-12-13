@@ -109,4 +109,16 @@ public class AttendanceService {
             throw new IllegalArgumentException(AFTER_DAY);
         }
     }
+
+    public void calculateAttendanceState(Crew crew, LocalDate localDate, LocalTime attendanceTime) {
+        if (attendanceTime == null || checkAttendance(localDate, attendanceTime).equals(ABSENCE)) {
+            crew.plusAbsence();
+            return;
+        }
+        if (checkAttendance(localDate, attendanceTime).equals(ATTENDANCE)) {
+            crew.plusAttendance();
+            return;
+        }
+        crew.plusLateness();
+    }
 }
