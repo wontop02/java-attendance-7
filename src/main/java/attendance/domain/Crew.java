@@ -33,6 +33,12 @@ public class Crew {
         return attendances.get(localDate);
     }
 
+    public void initState() {
+        attendance = 0;
+        lateness = 0;
+        absence = 0;
+    }
+
     public void plusAttendance() {
         attendance++;
     }

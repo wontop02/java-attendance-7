@@ -3,6 +3,7 @@ package attendance.controller;
 import static attendance.constant.FunctionConstant.ATTENDANCE_CHANGE;
 import static attendance.constant.FunctionConstant.ATTENDANCE_CHECK;
 import static attendance.constant.FunctionConstant.CREW_ATTENDANCE_CHECK;
+import static attendance.constant.FunctionConstant.QUIT;
 
 import attendance.domain.Crew;
 import attendance.domain.Day;
@@ -31,20 +32,27 @@ public class AttendanceController {
 
     public void run() {
         attendanceService.init();
-        String function = readFunction();
-        if (function.equals(ATTENDANCE_CHECK)) {
-            attendanceCheck();
-        }
-        if (function.equals(ATTENDANCE_CHANGE)) {
-            attendanceChange();
-        }
-        if (function.equals(CREW_ATTENDANCE_CHECK)) {
-            checkCrewAttendance();
+        while (true) {
+            String function = readFunction();
+            if (function.equals(ATTENDANCE_CHECK)) {
+                attendanceCheck();
+            }
+            if (function.equals(ATTENDANCE_CHANGE)) {
+                attendanceChange();
+            }
+            if (function.equals(CREW_ATTENDANCE_CHECK)) {
+                checkCrewAttendance();
+            }
+            if (function.equals(QUIT)) {
+                return;
+            }
         }
     }
 
     private String readFunction() {
-        String function = inputView.readFunction();
+        LocalDateTime now = DateTimes.now();
+        String function = inputView.readFunction(now.getMonthValue(), now.getDayOfMonth(), Day.valueOfDay(
+                now.getDayOfMonth()).getWeek());
         InputValidator.validateFunction(function);
         return function;
     }
@@ -86,12 +94,12 @@ public class AttendanceController {
         attendanceService.checkDayOff(localDate);
         attendanceService.checkAfterDay(day);
         LocalTime localTime = readChangeTime();
-        attendanceService.addAttendance(crew, LocalDate.of(2024, 12, day), localTime);
         String beforeStatus = attendanceService.checkAttendance(localDate, crew.getLocalTime(localDate));
         String afterStatus = attendanceService.checkAttendance(localDate, localTime);
         outputView.printAttendanceChange(localDate.getMonthValue(), localDate.getDayOfMonth(),
                 Day.valueOfDay(localDate.getDayOfMonth()).getWeek(), crew.getLocalTime(localDate).toString(),
                 beforeStatus, localTime.toString(), afterStatus);
+        attendanceService.addAttendance(crew, LocalDate.of(2024, 12, day), localTime);
     }
 
     private Crew readAttendanceChangeName() {
@@ -107,6 +115,7 @@ public class AttendanceController {
 
     private void checkCrewAttendance() {
         Crew crew = readAttendanceCrew();
+        crew.initState();
         for (int day = 1; day < DateTimes.now().getDayOfMonth(); day++) {
             LocalDate localDate = LocalDate.of(2024, 12, day);
             LocalTime localTime = crew.getLocalTime(localDate);
