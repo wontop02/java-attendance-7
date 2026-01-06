@@ -1,21 +1,24 @@
 package attendance.controller;
 
-import attendance.domain.Crew;
-import attendance.repository.CrewRepository;
 import attendance.service.AttendanceService;
+import attendance.util.InputValidator;
+import attendance.view.InputView;
+import attendance.view.OutputView;
 
 public class AttendanceController {
+    private final InputView inputView;
+    private final OutputView outputView;
     private final AttendanceService attendanceService;
 
-    public AttendanceController(AttendanceService attendanceService) {
+    public AttendanceController(InputView inputView, OutputView outputView, AttendanceService attendanceService) {
+        this.inputView = inputView;
+        this.outputView = outputView;
         this.attendanceService = attendanceService;
     }
 
     public void run() {
         attendanceService.init();
-        for (Crew crew : CrewRepository.crews()) {
-            System.out.println(crew.getName());
-            System.out.println(crew.attendance());
-        }
+        String function = inputView.readFunction();
+        InputValidator.validateFunction(function);
     }
 }
