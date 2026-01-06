@@ -11,6 +11,9 @@ public class InputView {
             + "Q. 종료";
     private static final String REQUEST_NAME = "닉네임을 입력해 주세요.";
     private static final String REQUEST_TIME = "등교 시간을 입력해 주세요.";
+    private static final String REQUEST_ATTENDANCE_CHANGE_NAME = "출석을 수정하려는 크루의 닉네임을 입력해 주세요.";
+    private static final String REQUEST_CHANGE_DAY = "수정하려는 날짜(일)를 입력해 주세요.";
+    private static final String REQUEST_CHANGE_TIME = "언제로 변경하겠습니까?";
 
     public String readFunction() {
         System.out.println(REQUEST_FUNCTION);
@@ -24,6 +27,21 @@ public class InputView {
 
     public String readTime() {
         System.out.println(REQUEST_TIME);
+        return Console.readLine();
+    }
+
+    public String readAttendanceChangeName() {
+        System.out.println(REQUEST_ATTENDANCE_CHANGE_NAME);
+        return Console.readLine();
+    }
+
+    public String readChangeDay() {
+        System.out.println(REQUEST_CHANGE_DAY);
+        return Console.readLine();
+    }
+
+    public String readChangeTime() {
+        System.out.println(REQUEST_CHANGE_TIME);
         return Console.readLine();
     }
 }

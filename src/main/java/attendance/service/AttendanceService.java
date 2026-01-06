@@ -3,6 +3,7 @@ package attendance.service;
 import attendance.domain.Crew;
 import attendance.domain.Day;
 import attendance.repository.CrewRepository;
+import camp.nextstep.edu.missionutils.DateTimes;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class AttendanceService {
     private static final String NOT_FOUND_CREW = "[ERROR] 등록되지 않은 닉네임입니다.";
     private static final String CAN_NOT_LOAD_FILE = "파일을 불러오는 데 문제가 발생했습니다.";
     private static final String ALREADY_ATTENDANCE = "[ERROR] 이미 출석을 확인하였습니다. 필요한 경우 수정 기능을 이용해 주세요.";
+    private static final String AFTER_DAY = "[ERROR] 아직 수정할 수 없습니다.";
 
     public void init() {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
@@ -60,9 +62,9 @@ public class AttendanceService {
         crew.addAttendance(localDate, localTime);
     }
 
-    public void checkDayOff(LocalDateTime localDateTime) {
-        int month = localDateTime.getMonthValue();
-        int day = localDateTime.getDayOfMonth();
+    public void checkDayOff(LocalDate localDate) {
+        int month = localDate.getMonthValue();
+        int day = localDate.getDayOfMonth();
         if (Day.isDayOff(day)) {
             throw new IllegalArgumentException(String.format(IS_DAY_OFF, month, day, Day.valueOfDay(day).getWeek()));
         }
@@ -76,28 +78,35 @@ public class AttendanceService {
         return crew;
     }
 
-    public String checkAttendance(Crew crew, LocalDateTime localDateTime, LocalTime attendanceTime) {
-        Day day = Day.valueOfDay(localDateTime.getDayOfMonth());
+    public String checkAttendance(LocalDate localDate, LocalTime attendanceTime) {
+        Day day = Day.valueOfDay(localDate.getDayOfMonth());
         LocalTime startTime = day.getStartTime();
         LocalTime attendance = startTime.plusMinutes(5);
         LocalTime lateness = startTime.plusMinutes(30);
         if (attendanceTime.isBefore(attendance) || attendanceTime.equals(attendance)) {
-            crew.plusAttendance();
             return ATTENDANCE;
         }
         if (attendanceTime.isBefore(lateness) || attendanceTime.equals(lateness)) {
-            crew.plusLateness();
             return LATENESS;
         }
-        crew.plusAbsence();
         return ABSENCE;
     }
 
-    public void addAttendance(Crew crew, LocalDateTime localDateTime, LocalTime attendanceTime) {
-        LocalDate localDate = localDateTime.toLocalDate();
+    public void checkAlreadyAttendance(Crew crew, LocalDate localDate) {
         if (crew.attendances().containsKey(localDate)) {
             throw new IllegalArgumentException(ALREADY_ATTENDANCE);
         }
+    }
+
+    public void addAttendance(Crew crew, LocalDate localDate, LocalTime attendanceTime) {
         crew.addAttendance(localDate, attendanceTime);
+    }
+
+    public void checkAfterDay(int day) {
+        LocalDateTime localDateTime = DateTimes.now();
+        int nowDay = localDateTime.getDayOfMonth();
+        if (day > nowDay) {
+            throw new IllegalArgumentException(AFTER_DAY);
+        }
     }
 }

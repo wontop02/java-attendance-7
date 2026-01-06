@@ -29,16 +29,8 @@ public class Crew {
         return Map.copyOf(attendances);
     }
 
-    public void plusAttendance() {
-        attendance++;
-    }
-
-    public void plusLateness() {
-        lateness++;
-    }
-
-    public void plusAbsence() {
-        absence++;
+    public LocalTime getLocalTime(LocalDate localDate) {
+        return attendances.get(localDate);
     }
 
     public int getAttendance() {
