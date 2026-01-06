@@ -1,11 +1,13 @@
 package attendance.service;
 
 import attendance.domain.Crew;
+import attendance.domain.Day;
 import attendance.repository.CrewRepository;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -16,7 +18,8 @@ public class AttendanceService {
     private static final String TIME_FORMAT = "HH:mm";
     private static final String FILE_PATH = "src/main/resources/attendances.csv";
 
-    private static final String NOT_FOUND_CREW = "등록되지 않은 닉네임입니다.";
+    private static final String IS_DAY_OFF = "[ERROR] %d월 %d일 %s요일은 등교일이 아닙니다.";
+    private static final String NOT_FOUND_CREW = "[ERROR] 등록되지 않은 닉네임입니다.";
     private static final String CAN_NOT_LOAD_FILE = "파일을 불러오는 데 문제가 발생했습니다.";
 
     public void init() {
@@ -51,5 +54,13 @@ public class AttendanceService {
 
         Crew crew = CrewRepository.findByName(name);
         crew.addAttendance(localDate, localTime);
+    }
+
+    public void checkDayOff(LocalDateTime localDateTime) {
+        int month = localDateTime.getMonthValue();
+        int day = localDateTime.getDayOfMonth();
+        if (Day.isDayOff(day)) {
+            throw new IllegalArgumentException(String.format(IS_DAY_OFF, month, day, Day.valueOfDay(day).getWeek()));
+        }
     }
 }
