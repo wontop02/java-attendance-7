@@ -9,9 +9,21 @@ public class InputView {
             + "3. 크루별 출석 기록 확인\n"
             + "4. 제적 위험자 확인\n"
             + "Q. 종료";
+    private static final String REQUEST_NAME = "닉네임을 입력해 주세요.";
+    private static final String REQUEST_TIME = "등교 시간을 입력해 주세요.";
 
     public String readFunction() {
         System.out.println(REQUEST_FUNCTION);
+        return Console.readLine();
+    }
+
+    public String readName() {
+        System.out.println(REQUEST_NAME);
+        return Console.readLine();
+    }
+
+    public String readTime() {
+        System.out.println(REQUEST_TIME);
         return Console.readLine();
     }
 }

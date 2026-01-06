@@ -17,10 +17,14 @@ public class AttendanceService {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String TIME_FORMAT = "HH:mm";
     private static final String FILE_PATH = "src/main/resources/attendances.csv";
+    private static final String ATTENDANCE = "출석";
+    private static final String LATENESS = "지각";
+    private static final String ABSENCE = "결석";
 
     private static final String IS_DAY_OFF = "[ERROR] %d월 %d일 %s요일은 등교일이 아닙니다.";
     private static final String NOT_FOUND_CREW = "[ERROR] 등록되지 않은 닉네임입니다.";
     private static final String CAN_NOT_LOAD_FILE = "파일을 불러오는 데 문제가 발생했습니다.";
+    private static final String ALREADY_ATTENDANCE = "[ERROR] 이미 출석을 확인하였습니다. 필요한 경우 수정 기능을 이용해 주세요.";
 
     public void init() {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
@@ -62,5 +66,38 @@ public class AttendanceService {
         if (Day.isDayOff(day)) {
             throw new IllegalArgumentException(String.format(IS_DAY_OFF, month, day, Day.valueOfDay(day).getWeek()));
         }
+    }
+
+    public Crew findCrew(String name) {
+        Crew crew = CrewRepository.findByName(name);
+        if (crew == null) {
+            throw new IllegalArgumentException(NOT_FOUND_CREW);
+        }
+        return crew;
+    }
+
+    public String checkAttendance(Crew crew, LocalDateTime localDateTime, LocalTime attendanceTime) {
+        Day day = Day.valueOfDay(localDateTime.getDayOfMonth());
+        LocalTime startTime = day.getStartTime();
+        LocalTime attendance = startTime.plusMinutes(5);
+        LocalTime lateness = startTime.plusMinutes(30);
+        if (attendanceTime.isBefore(attendance) || attendanceTime.equals(attendance)) {
+            crew.plusAttendance();
+            return ATTENDANCE;
+        }
+        if (attendanceTime.isBefore(lateness) || attendanceTime.equals(lateness)) {
+            crew.plusLateness();
+            return LATENESS;
+        }
+        crew.plusAbsence();
+        return ABSENCE;
+    }
+
+    public void addAttendance(Crew crew, LocalDateTime localDateTime, LocalTime attendanceTime) {
+        LocalDate localDate = localDateTime.toLocalDate();
+        if (crew.attendances().containsKey(localDate)) {
+            throw new IllegalArgumentException(ALREADY_ATTENDANCE);
+        }
+        crew.addAttendance(localDate, attendanceTime);
     }
 }
