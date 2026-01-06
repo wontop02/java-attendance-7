@@ -133,5 +133,22 @@ public class AttendanceController {
                     attendanceService.checkAttendance(localDate, localTime));
         }
         outputView.printAttendanceState(crew.getAttendance(), crew.getLateness(), crew.getAbsence());
+        printWarningState(crew);
+    }
+
+    private void printWarningState(Crew crew) {
+        int absence = crew.getAbsence();
+        absence += crew.getLateness() / 3;
+        if (absence > 5) {
+            outputView.printExpulsion();
+            return;
+        }
+        if (absence >= 3) {
+            outputView.printInterview();
+            return;
+        }
+        if (absence >= 2) {
+            outputView.printWarning();
+        }
     }
 }
