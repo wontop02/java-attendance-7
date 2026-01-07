@@ -116,6 +116,12 @@ public class AttendanceController {
     private void checkCrewAttendance() {
         Crew crew = readAttendanceCrew();
         crew.initState();
+        printAttendance(crew);
+        outputView.printAttendanceState(crew.getAttendance(), crew.getLateness(), crew.getAbsence());
+        outputView.printWarning(attendanceService.checkWarningState(crew));
+    }
+
+    public void printAttendance(Crew crew) {
         for (int day = 1; day < DateTimes.now().getDayOfMonth(); day++) {
             LocalDate localDate = LocalDate.of(2024, 12, day);
             LocalTime localTime = crew.getLocalTime(localDate);
@@ -131,24 +137,6 @@ public class AttendanceController {
             outputView.printAttendanceCheck(localDate.getMonthValue(), localDate.getDayOfMonth(), Day.valueOfDay(
                             localDate.getDayOfMonth()).getWeek(), localTime.toString(),
                     attendanceService.checkAttendance(localDate, localTime));
-        }
-        outputView.printAttendanceState(crew.getAttendance(), crew.getLateness(), crew.getAbsence());
-        printWarningState(crew);
-    }
-
-    private void printWarningState(Crew crew) {
-        int absence = crew.getAbsence();
-        absence += crew.getLateness() / 3;
-        if (absence > 5) {
-            outputView.printExpulsion();
-            return;
-        }
-        if (absence >= 3) {
-            outputView.printInterview();
-            return;
-        }
-        if (absence >= 2) {
-            outputView.printWarning();
         }
     }
 }

@@ -1,5 +1,10 @@
 package attendance.service;
 
+import static attendance.constant.WarningConstant.EXPULSION;
+import static attendance.constant.WarningConstant.INTERVIEW;
+import static attendance.constant.WarningConstant.NONE;
+import static attendance.constant.WarningConstant.WARNING;
+
 import attendance.domain.Crew;
 import attendance.domain.Day;
 import attendance.repository.CrewRepository;
@@ -120,5 +125,20 @@ public class AttendanceService {
             return;
         }
         crew.plusLateness();
+    }
+
+    public String checkWarningState(Crew crew) {
+        int absence = crew.getAbsence();
+        absence += crew.getLateness() / 3;
+        if (absence > 5) {
+            return EXPULSION;
+        }
+        if (absence >= 3) {
+            return INTERVIEW;
+        }
+        if (absence >= 2) {
+            return WARNING;
+        }
+        return NONE;
     }
 }
